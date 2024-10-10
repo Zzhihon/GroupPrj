@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+    <style>
+        body, .main-container {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+        }
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+        }
+        #userlist {
+            border-right: solid 1px black;
+        }
+
+        .userlist-item {
+            padding: 10px;
+            border: solid 1px black;
+        }
+
+        .userlist-acitve {
+            background-color: aqua;
+        }
+
+        #chat-box {
+            display: grid;
+            grid-template-rows: 3fr 1fr;
+            height: 100vh;
+        }
+
+        #message-box {
+            overflow-y: scroll;
+        }
+
+        .message-item {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 9fr;
+            gap: 10px;
+        }
+
+        #text-edit {
+            display: grid;
+            grid-template-rows: 5fr 1fr;
+        }
+
+        .button-view{
+            display: flex;
+            justify-content: flex-end;
+        }
+        .button-view button{
+            width: 100px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div id="userlist">
+
+        </div>
+        <div id = "chat-box">
+            <div id="message-box">
+
+            </div>
+            <div id="text-edit">
+                <textarea id="input-text"></textarea>
+                <div class="button-view">
+                    <a href="/static/search.html">添加聊天室</a>
+					<input id="submit-btn" type="button" value="Send">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const chatSocket = new WebSocket(
+            'ws://8.138.167.80:6677/ws/chats/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#message-box').innerHTML += `
+                <div class="message-item">
+                <p>${data.message}</p>
+            `
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#input-text').focus();
+        document.querySelector('#input-text').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#submit-btn').click();
+            }
+        };
+
+        document.querySelector('#submit-btn').onclick = function(e) {
+            const messageInputDom = document.querySelector('#input-text');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
+

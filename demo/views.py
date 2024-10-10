@@ -3,10 +3,12 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from django.http import Http404
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
-from demo.models import Profile, Item, Trade, Review
-from demo.serializers import ProfileSerializer, TradeSerializer, ItemSerializer, ReviewSerializer
+from django.contrib.auth import get_user_model
+from demo.models import Profile, Item, Trade, ReviewForItem, ReviewForTrade
+from demo.serializers import ProfileSerializer, TradeSerializer, ItemSerializer, ReviewForTradeSerializer
 
 # Create your views here.
 class getprofile(APIView):
@@ -59,15 +61,38 @@ class RegisterView(APIView):
 
         })
         
-class GetTrade(APIView):
+class TradeView(APIView):
     permission_classes = ([IsAuthenticated])
     
-    def get(self, request, format=None):
+    def get(self, request, pk1, pk2, format=None):
         user = request.user
         profile = user.profile
-        trade = Trade.objects.get(seller=profile)
-        serializer = TradeSerializer(trade, many=False)
+        trades = profile.seller.all()
+        ztrade = None
+        for trade in trades:
+            if trade.buyer.username == pk1 and trade.item.name == pk2:
+                ztrade = trade
+        serializer = TradeSerializer(ztrade, many=False)
         return Response(serializer.data)
+
+
+class TradePostView(APIView):
+
+    def post(self, request, format=None):
+        data = request.POST
+        seller = data.get("seller", "").strip()
+        buyer = data.get("buyer", "").strip()
+        item = data.get("item", "").strip()
+        seller = Profile.objects.get(username=seller)
+        buyer = Profile.objects.get(username=buyer)
+        item = Item.objects.get(name=item)
+        trade = Trade.objects.create(seller=seller, buyer=buyer, item=item)
+        serializer =  TradeSerializer(trade, many=False)
+        return Response({
+            'code': 'success',
+        })
+  
+
         
 class GetReview(APIView):
     permission_classes = ([IsAuthenticated])
@@ -75,22 +100,44 @@ class GetReview(APIView):
     def get(self, request, format=None):
         user = request.user
         profile = user.profile
-        review = Review.objects.get(owner=profile)
-        serializer = ReviewSerializer(review, many=False)
+        review = ReviewForTrade.objects.get(owner=profile)
+        serializer = ReviewForTradeSerializer(review, many=False)
         return Response(serializer.data)
         
-
-    
+def LoginView(request):
+    return render(request, 'login.html')
 
 def index(request):
-    data = request.GET
+    users = User.objects.all()
+    nested_tuple = tuple((user.username, user.username) for user in users)
+    nested_tuple +=(('default', 'default'),)
     context = {
-        'theme': data.get('theme', "qweasd"),
-        'refresh': data.get('refresh', "qweasd"),
-        'data': data,
+        'user': nested_tuple,
     }
 
     return render(request, "demo/web.html", context)
+
+def SearchView(request):
+    return render(request, 'search.html')
+
+
+class SearchUserView(APIView):
+    permission_classes = ([IsAuthenticated])
+
+    def get(self, request, pk, format=None):
+        user_me = request.user
+        users = User.objects.all()
+        for user in users:
+            if user.username == pk:
+                return Response({
+                    'user_me': user_me.profile,
+                    'user_ant': user.profile
+                })
+
+def ItemPage(request):
+    return render(request, 'item.html')
+
+
 
 
 

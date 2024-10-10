@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>serach user</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+        }
+        #search-view,#result-list{
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="search-view">
+        <input id="search-input" placeholder="请输入查找的用户名"/>
+        <button id="search-button">搜索</button>
+    </div>
+    <div id="result-list">
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        axios.interceptors.request.use((config)=>{
+            config.headers = {
+                'Authorization':`Bearer ${localStorage.getItem("access")}`
+            }
+
+            return config
+        })
+
+        const socket = new WebSocket(`ws://8.138.167.80:6677/ws/chattest/?token=${localStorage.getItem("access")}`);
+        socket.addEventListener("open",(e)=>{})
+
+        socket.addEventListener("message",(e)=>{
+            const data = JSON.parse(e.data)
+            console.log(data)
+            if(data.type=="error"){
+                if(data.code==1){
+                    alert("聊天室已存在")
+                }else if(data.code==2){
+                    alert("创建失败")
+                }
+            }else if(data.type=="success"){
+                if(data.code==1){
+                    alert("建立成功")
+                    window.location.replace("http://8.138.167.80:6677/chat/")
+                }
+            }
+
+        })
+
+        socket.addEventListener("close",(e)=>{})
+
+        socket.addEventListener("error",(e)=>{})
+
+        function join_room(target_user){
+            socket.send(JSON.stringify({
+                message_type:'join',
+                target_user:target_user
+            }))
+
+        }
+
+        document.querySelector('#search-button').onclick = async function(e){
+            const search_box = document.querySelector('#search-input')
+
+            axios.get(`/profiles/getprofile/${search_box.value}`)
+            .then(res=>{
+                if(res.status==200){
+                    if(res.data.code==101){
+
+                    }else{
+                        const new_user = document.createElement('div')
+                        new_user.textContent = `name: ${res.data.username}`
+                        new_user.id = `user_${res.data.id}`
+
+                        document.querySelector('#result-list').appendChild(new_user)
+
+                        new_user.onclick = async function(e){
+                            console.log("join chatroom")
+                            join_room(res.data.id)
+                            console.log("join chatroom")
+                        }
+                    }
+                }
+            })
+
+
+        }
+
+    </script>
+</body>
+</html>
+

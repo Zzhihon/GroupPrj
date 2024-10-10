@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Page</title>
+    <script src="http://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="axios.js" defer></script>
+  </head>
+  <body>
+    <script>
+      axios({
+        method: "get",
+        url: "http://8.138.167.80:6677/profiles/getprofile/",
+        headers: {
+            "Authorization":
+            "Bearer: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI3NTgxOTk3LCJpYXQiOjE3Mjc0OTU1OTcsImp0aSI6IjQ5YzJhNzY3NTFmOTQzZTI4OTY3ZDMzNmMyZjUyNWQ3IiwidXNlcl9pZCI6MTl9.BHcVIIEUYL-11vW9FfCfRE7fwmmkRs_Od5iBLmK0wBE"
+        },
+      })
+        .then(function (response) {
+          // 处理成功情况
+          console.log(response);
+        })
+        .catch(function (error) {
+          // 处理错误情况
+          console.log(error);
+        });
+    </script>
+    <a href="http://8.138.167.80:6677/chat/">Chat with seller</a>
+
+  </body>
+</html>
+

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>login</title>
+</head>
+<body>
+    <input id="username" type="text"/><br/>
+    <input id="password" type="password"/><br/>
+    <input id="submit-btn" type="button" value="登录"/>
+    <a href="/static/register.html">注册</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.querySelector('#username').focus();
+        document.querySelector('#password').onkeyup = function(e) {
+            if (e.key === 'Enter') {  // enter, return
+                document.querySelector('#submit-btn').click();
+            }
+        };
+
+        document.querySelector('#submit-btn').onclick = async function(e) {
+            const username = document.querySelector('#username').value
+            const passowrd = document.querySelector('#password').value
+            axios.post("http://8.138.167.80:6677/api/token/",{
+                "username":username,
+                "password":passowrd
+            })
+            .then(res=>{
+                if(res.status==200){
+                    localStorage.setItem("access",res.data.access)
+                    localStorage.setItem("refresh",res.data.refresh)
+                    window.location.replace("http://8.138.167.80:6677/chat/")
+                }
+            })
+        };
+    </script>
+</body>
